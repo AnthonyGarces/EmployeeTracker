@@ -36,11 +36,14 @@ function start() {
                 'View all employees by Manager',
                 'Add Employee',
                 'Remove Employee',
+
                 'Update employee role',
                 'Update employee Manager',
                 //Done
                 'View all roles',
-                'Add Role',
+                //Done
+                'Add role',
+                //Done
                 'Remove role',
                 //Done
                 'View departments',
@@ -71,6 +74,17 @@ function start() {
 
         case "Remove departments":
             removeDepartment();
+            break;
+
+        case "Add role":
+            addRole();
+            break;
+        case "Remove role":
+            removeRole();
+            break;
+
+        case "Update employee role":
+            updateRole();
             break;
         }
     })       
@@ -140,14 +154,15 @@ function addDepartment() {
                     console.log("Department Added successfully!")
                 }
             );
-            newRequest();
+            console.log("Here is the updated table")
+            getDepartments();
         })
 }
 
 function removeDepartment() {
     connection.query('SELECT * FROM department', function (err, res) {
         if (err) throw err;
-        var choicesList = [];
+        var departmentList = [];
         for (var i = 0; i < res.length; i++) {
             choicesList.push(res[i].Name);
         };
@@ -158,7 +173,7 @@ function removeDepartment() {
                     type: "list",
                     name: "baddepartment",
                     message: "Which department would you like to delete?",
-                    choices: choicesList,
+                    choices: departmentList,
                     
                 }
             ])
@@ -178,6 +193,102 @@ function removeDepartment() {
     })
 }
 
+function addRole() {
+    inquirer
+        .prompt([
+            {
+                type: "input",
+                name: "newtitle",
+                message: "What is the new role title you would like to add?"
+            },
+            {
+                type: "input",
+                name: "newsalary",
+                message: "How much is the salary for the new role?"
+            },
+            {
+                type: "input",
+                name: "managingdepartment",
+                message: "what is the department ID the role belongs to?"
+            }
+        ])
+        .then(data => {
+            connection.query(`INSERT INTO role (title, salary, department_ID)
+            VALUES ("${data.newtitle}", ${data.newsalary}, ${data.managingdepartment})`, function(err, res) {
+                if (err) throw err;
+                console.log("Role added successfully!")
+            });
+            console.log("Here is the updated table");
+            getRoles();
+
+        })
+}
+
+function removeRole() {
+    connection.query('SELECT * FROM role', function (err, res) {
+        if (err) throw err;
+        var roleList = [];
+        for (var i = 0; i < res.length; i++) {
+            roleList.push(res[i].title);
+        };
+        inquirer
+            .prompt([
+                {
+                    type: "list",
+                    name: "badrole",
+                    message: "Which role would you like to delete?",
+                    choices: roleList,
+                    
+                }
+            ])
+            .then(data => {
+                connection.query(
+                    `DELETE FROM role
+                    WHERE title = "${data.badrole}";`
+                    
+                    , function (err, res) {
+                        if (err) throw err;
+                        console.log("Here is the updated table");
+                        getDepartments()
+                        
+                    }
+                )
+            })
+    }
+    )}
+
+function updateRole() {
+    connection.query('SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.Name FROM employee LEFT JOIN role ON role_id = role.ID LEFT JOIN department ON department_id = department.ID', function(err, res) {
+        if (err) throw err;
+        var employeeList = [];
+        for (var i = 0; i < res.length; i++) {
+            employeeList.push(`${res[i].last_name}, ${res[i].first_name}`)
+        }
+        inquirer
+            .prompt([
+                {
+                    type: "list",
+                    name: "changedEmpRole",
+                    message: "Please select the employee whose role is to be updated",
+                    choices: employeeList,
+                },
+                {
+                    type: 'input',
+                    name: "newEmpRole",
+                    message: 'What is their new role ID?',
+
+                }
+            ])
+            .then(data => {
+                connection.query(`UPDATE employee SET role_id = ${data.newEmpRole} WHERE CONCAT(role.last_name, ',' , role.first_name) Fullname = ${data.changedEmpRole}`, function(err, res) {
+                    if (err) throw err;
+                    console.log("Role updated successfully!")
+                });
+                getEmployees();
+            });
+    })
+}
+
 function addEmployee() {
     inquirer
         .prompt([
@@ -194,7 +305,7 @@ function addEmployee() {
             {
                 type: 'input',
                 name: "super",
-                message: "Enter the employee's superviser"
+                message: "Enter the employee's superviser ID"
             }
         ])
         .then(data => {
