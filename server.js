@@ -46,7 +46,7 @@ function start() {
                 'View departments',
                 //Done
                 'Add departments',
-
+                //Done
                 'Remove departments'
             ],           
         }
@@ -77,7 +77,7 @@ function start() {
 }
 
 function getEmployees() {
-connection.query("SELECT * FROM employee", function(err, res) {
+connection.query('SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.Name FROM employee LEFT JOIN role ON role_id = role.ID LEFT JOIN department ON department_id = department.ID', function(err, res) {
     if (err) throw err;
     console.table(res);
     newRequest()
@@ -85,7 +85,7 @@ connection.query("SELECT * FROM employee", function(err, res) {
 }
 
 function getRoles() {
-connection.query("SELECT * FROM role", function(err, res) {
+connection.query("SELECT role.ID, role.title, role.salary, department.Name FROM role LEFT JOIN department ON department_id = department.id", function(err, res) {
     if (err) throw err;
     console.table(res);
     newRequest();
@@ -177,6 +177,7 @@ function removeDepartment() {
             })
     })
 }
+
 function addEmployee() {
     inquirer
         .prompt([
